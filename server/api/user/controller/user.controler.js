@@ -47,12 +47,12 @@ function insert(req, res) {
 
                 var mailOptions = {
                     from: "sandip.lakum5@gmail.com",
-                    to: "m.rathod1000@gmail.com",
+                    to:req.body.Email,
 
                     subject: "verifiaction mail",
 
                     text: "very ficatio code is 123455",
-                    html: "<b>Hello world </b>",
+                    html: "<b> Wel Come in RapidFilter....You are Successfullly login</b>",
 
                 }
                 console.log(mailOptions);
@@ -153,6 +153,7 @@ function login(req, res) {
                 data: result
 
             });
+            mailSending();
             console.log("here 1")
             var username = 'user1',
                 password = 'a7110c5b0abee873bfd3ea4f62a66369ae616a1f',
@@ -187,8 +188,44 @@ function login(req, res) {
                     });
                 }
             });
+            function mailSending() {
 
-            console.log('login successfully');
+                var transporter = nodemailer.createTransport(smtpTransport({
+                    host: "smtp.gmail.com",
+                    secureConnection: false,
+                    port: 25,
+                    auth: {
+                        user: "sandip.lakum5@gmail.com",
+                        pass: 's.k.6112'
+                    }
+                }));
+
+                var mailOptions = {
+                    from: "sandip.lakum5@gmail.com",
+                    to: req.body.Email,
+
+                    subject: "verifiaction mail",
+
+                    text: "very ficatio code is 123455",
+                    html: "<b> Wel Come in RapidFilter....You are Successfullly login...Valid User</b>",
+
+                }
+                console.log(mailOptions);
+                transporter.sendMail(mailOptions, function (error, response) {
+                    if (error) {
+                        console.log(error);
+                        res.end("error");
+                    } else {
+                        console.log('mail sendeing');
+                        console.log(response.response.toString());
+                        console.log("Message sent: " + response.message);
+                        res.end("sent");
+                        console.log('mail send successfully');
+                    }
+                });
+            }
+
+                console.log('login successfully');
         } else {
             res.status(201).send(err);
 
