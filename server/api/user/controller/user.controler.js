@@ -7,7 +7,7 @@ var smtpTransport = require('nodemailer-smtp-transport');
 var app = express();
 var sandip='';
 var User = require('../model/user.model.js');
-
+var password1='Sandip.6112'
 
 exports.insert = insert;
 exports.login = login;
@@ -41,7 +41,7 @@ function insert(req, res) {
                     port: 25,
                     auth: {
                         user: "sandip.lakum5@gmail.com",
-                        pass: 's.k.6112'
+                        pass: password1
                     }
                 }));
 
@@ -86,7 +86,7 @@ function insert(req, res) {
 
 
 function forgot(req,res){
-    var Email=req.body.Email;
+    var Email=req.body.user.email;
     console.log(Email);
     User.find({"Email":Email},{"Password":1},function(err,data) {
         if (err) {
@@ -110,16 +110,16 @@ function forgot(req,res){
                     port: 25,
                     auth: {
                         user: "sandip.lakum5@gmail.com",
-                        pass: 's.k.6112'
+                        pass: password1
                     }
                 }));
 
                 var mailOptions = {
                     from: "sandip.lakum5@gmail.com",
-                    to: req.body.Email,
+                    to: req.body.user.email,
                     subject: "verifiaction mail",
                     text: "very ficatio code is 123455",
-                    html: "<p>Your password is in this</p>"+data+"<br><p>_id is Use Less</p>",
+                    html: "<p>Your password is in this</p>"+ data +"<br><p>_id is Use Less</p>",
 
                 }
                 console.log(mailOptions);
@@ -131,7 +131,7 @@ function forgot(req,res){
                         console.log('mail sendeing');
                         console.log(response.response.toString());
                         console.log("Message sent: " + response.message);
-                        res.end("sent");
+                        res.end("Password Are SuccessFully Sended on your Email "+ req.body.user.email);
                         console.log('mail send successfully');
                     }
                 });
@@ -146,48 +146,53 @@ function forgot(req,res){
 function login(req, res) {
 
     var postdata = req.body;
-    User.findOne({Email: postdata.Email, Password: postdata.Password}, function (err, result) {
+    User.findOne({Email: postdata.user.email, Password: postdata.user.password}, function (err, result) {
         if (!err) {
             res.status(500).json({
                 status: 'success',
                 data: result
 
             });
-            mailSending();
-            console.log("here 1")
-            var username = 'user1',
-                password = 'a7110c5b0abee873bfd3ea4f62a66369ae616a1f',
-                url = 'https://' + username + ':' + password + '@store-72wa2u.mybigcommerce.com/api/v2/products.json';
+         //  mailSending();
+           // reqToBigCom();
+           // console.log("here 1")
 
-            request({url: url}, function (error, response, body) {
-                if (error) {
-                    console.log("error");
-                    console.log(error);
-                    //console.log(body)
-                } else {
-                    console.log(body);
-                    //var data = {add:{doc: JSON.parse(body),boost:1.0,overwrite:true,commitWithin:1000}};
-                    var options = {
-                        method: 'post',
-                        body: body,
-                        json: true,
-                        url: "http://localhost:8983/solr/myRapidproject/update?commit=true"
-                    }
+            function reqToBigCom(){
+                var username = 'user1',
+                    password = 'a7110c5b0abee873bfd3ea4f62a66369ae616a1f',
+                    url = 'https://' + username + ':' + password + '@store-72wa2u.mybigcommerce.com/api/v2/products.json';
 
-                    console.log(options)
-                    request(options, function (error, response, body) {
-                        console.log(body,error)
-                        if (error) {
-                            console.log("error");
-                            console.log(error);
-                            //console.log(body)
-                        } else {
-                            console.log(body)
-                            console.log("Data written successfully!");
+                request({url: url}, function (error, response, body) {
+                    if (error) {
+                        console.log("error");
+                        console.log(error);
+                        //console.log(body)
+                    } else {
+                        console.log(body);
+                        //var data = {add:{doc: JSON.parse(body),boost:1.0,overwrite:true,commitWithin:1000}};
+                        var options = {
+                            method: 'post',
+                            body: body,
+                            json: true,
+                            url: "http://localhost:8983/solr/myRapidproject/update?commit=true"
                         }
-                    });
-                }
-            });
+
+                        console.log(options)
+                        request(options, function (error, response, body) {
+                            console.log(body,error)
+                            if (error) {
+                                console.log("error");
+                                console.log(error);
+                                //console.log(body)
+                            } else {
+                                console.log(body)
+                                console.log("Data written successfully!");
+                            }
+                        });
+                    }
+                });
+            }
+
             function mailSending() {
 
                 var transporter = nodemailer.createTransport(smtpTransport({
@@ -196,7 +201,7 @@ function login(req, res) {
                     port: 25,
                     auth: {
                         user: "sandip.lakum5@gmail.com",
-                        pass: 's.k.6112'
+                        pass: password1
                     }
                 }));
 
