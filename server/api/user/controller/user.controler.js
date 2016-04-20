@@ -5,33 +5,42 @@ var solr = require('solr-client');
 var nodemailer = require('nodemailer');
 var smtpTransport = require('nodemailer-smtp-transport');
 var app = express();
-var sandip='';
 var User = require('../model/user.model.js');
-var password1='Sandip.6112'
+var password1='San';
+var crypto = require('crypto');
+var session = require('express-session');
+
+
+
 
 exports.insert = insert;
 exports.login = login;
 exports.forgot=forgot;
+exports.resetpass=resetpass;
+//exports.homepage=homepage;
+exports.logout=logout;
+exports.getProduct=getProduct;
 
 function insert(req, res) {
-    var postdata = req.body;
+    var postdata = req.body.user;
     var user = new User({
         Email: postdata.Email,
         Password: postdata.Password,
         Mobile: postdata.Mobile,
         ClientId: postdata.ClientId,
-        ClientAppSecret: postdata.ClientAppSecret,
-        Admin: postdata.Admin
+        ClientAppSecret: postdata.ClientAppSecret
     });
     user.save(function (err, result) {
         if (!err) {
             mailSending();
+           // Redirect();
 
             res.status(200).json({
                 status: 'successfully registered',
                 data: result
 
             });
+
 
             function mailSending() {
 
@@ -47,7 +56,7 @@ function insert(req, res) {
 
                 var mailOptions = {
                     from: "sandip.lakum5@gmail.com",
-                    to:req.body.Email,
+                    to:postdata.Email,
 
                     subject: "verifiaction mail",
 
@@ -80,7 +89,6 @@ function insert(req, res) {
             res.status(201).send(err);
         }
     });
-
 }
 
 
@@ -88,21 +96,29 @@ function insert(req, res) {
 function forgot(req,res){
     var Email=req.body.user.email;
     console.log(Email);
-    User.find({"Email":Email},{"Password":1},function(err,data) {
+    User.find({"Email":Email},function(err,data) {
         if (err) {
             res.status(500).send(err);
 
         }
-
         else {
+            var random = crypto.randomBytes(Math.ceil(6)).toString('hex').slice(0,12).toUpperCase();
+            var new_password= random;
+            User.update({Email:Email},{$set:{Password:new_password}}, function(err, value) {
+                if (err || value.nModified == 0) {
+                    res = false;
 
-            console.log("Hello data" + data),
-               mailSending(data),
-                function (err) {
-                if (err) return next(err)
-            }
+                }
+                else {
+                    console.log("mail sending process.....");
+                    console.log(value,new_password);
+                    mailSending(new_password);
+                }
 
-            function mailSending(data) {
+            });
+
+
+            function mailSending(value) {
 
                 var transporter = nodemailer.createTransport(smtpTransport({
                     host: "smtp.gmail.com",
@@ -119,8 +135,7 @@ function forgot(req,res){
                     to: req.body.user.email,
                     subject: "verifiaction mail",
                     text: "very ficatio code is 123455",
-                    html: "<p>Your password is in this</p>"+ data +"<br><p>_id is Use Less</p>",
-
+                    html: "<p>This is Your currunt password:</p>"+ value +"<br><p>Reset Your Password...from this Currunt password </p>",
                 }
                 console.log(mailOptions);
                 transporter.sendMail(mailOptions, function (error, response) {
@@ -136,31 +151,59 @@ function forgot(req,res){
                     }
                 });
             }
+            res.redirect("http://localhost:63342/bigcomm/Html/login.html")
 
         }
     });
 };
 
-
+var sess="";
 
 function login(req, res) {
 
     var postdata = req.body;
-    User.findOne({Email: postdata.user.email, Password: postdata.user.password}, function (err, result) {
-        if (!err) {
-            res.status(500).json({
-                status: 'success',
-                data: result
+    console.log("login Controller");
+    console.log(postdata.email);
+    console.log(postdata.password);
 
-            });
-         //  mailSending();
-           // reqToBigCom();
-           // console.log("here 1")
+    User.findOne({Email: postdata.email,Password: postdata.password},function (err, result) {
+        console.log("result is " + result);
+
+        if (err || !result) {
+            res.json({result:'fail'});
+        }
+        else if (!err) {
+            console.log('Result :',result.Email);
+            req.session.Email= result.Email;
+            console.log("Seesion:"+req.session.Email);
+            /*if(req.session.Email) {
+                //res.redirect('http://localhost:63342/bigcomm/Html/credentials.html');
+                res.json({result:true});
+            }*/
+            if (result) {
+                res.json({result:'success'});
+            }
+
+            //res.status(500).json({
+            //    status: 'success',
+            //    data: result
+            //
+            //});
+
+
+
+
+           //mailSending();
+           //reqToBigCom();
+
+
+
 
             function reqToBigCom(){
                 var username = 'user1',
-                    password = 'a7110c5b0abee873bfd3ea4f62a66369ae616a1f',
-                    url = 'https://' + username + ':' + password + '@store-72wa2u.mybigcommerce.com/api/v2/products.json';
+                    password = '08bab894c121ebc4c3aa71213c0e095b29998ac7',
+                    a='jtj7sv9',
+                    url = 'https://' + username + ':' + password + '@store-'+a+'.mybigcommerce.com/api/v2/products.json';
 
                 request({url: url}, function (error, response, body) {
                     if (error) {
@@ -168,6 +211,7 @@ function login(req, res) {
                         console.log(error);
                         //console.log(body)
                     } else {
+                        console.log(sess.email);
                         console.log(body);
                         //var data = {add:{doc: JSON.parse(body),boost:1.0,overwrite:true,commitWithin:1000}};
                         var options = {
@@ -207,7 +251,7 @@ function login(req, res) {
 
                 var mailOptions = {
                     from: "sandip.lakum5@gmail.com",
-                    to: req.body.Email,
+                    to: req.body.user.email,
 
                     subject: "verifiaction mail",
 
@@ -230,12 +274,101 @@ function login(req, res) {
                 });
             }
 
-                console.log('login successfully');
+            //res.json({result:true});
         } else {
-            res.status(201).send(err);
+            res.json({result:false});
+            res.status(400).send(err);
 
         }
     });
 
 }
 
+
+function resetpass(req, res) {
+    var postdata = req.body;
+    console.log('reset password.........');
+    console.log(req.session.Email);
+    if(req.session.Email){
+    User.update({Email:req.session.Email,Password: postdata.user.cpassword},{$set:{Password:postdata.user.re_password}}, function(err,value){
+        console.log(value);
+        if(!err) {
+            console.log(value);
+            console.log("Password Are Reseted");
+        }
+        else {
+           return err
+        }
+
+    });
+    }
+    else{
+        res.end;
+    }
+}
+
+
+function logout(req,res) {
+        req.session.destroy(function (err) {
+        if (err) {
+            console.log(err);
+        } else {
+
+            res.redirect('http://localhost:63342/bigcomm/Html/login.html');
+        }
+    });
+}
+
+function getProduct(req,res){
+    console.log("Getting product")
+    var userdata=req.body.user;
+    var user=userdata.userId;
+    console.log(user);
+    var apitoken=userdata.apiToken;
+    var storehash=userdata.storeHash;
+    if(user || apitoken || storehash){
+        console.log(user+'in side if');
+                var user=user; //'user1',
+                password = apitoken,//'08bab894c121ebc4c3aa71213c0e095b29998ac7',
+                storeHash=storehash, //'jtj7sv9',
+                url = 'https://' + user+ ':' + password + '@store-'+storeHash+'.mybigcommerce.com/api/v2/products.json';
+
+            request({url: url}, function (error, response, body) {
+                if (error) {
+                    console.log("error");
+                    console.log(error);
+                    res.send('inserted credential in invalid');
+                    res.end();
+                    //console.log(body)
+                } else {
+                    //console.log(sess.email);
+                    console.log(body);
+                    //var data = {add:{doc: JSON.parse(body),boost:1.0,overwrite:true,commitWithin:1000}};
+                    var options = {
+                        method: 'post',
+                        body: body,
+                        json: true,
+                        url: "http://localhost:8983/solr/myRapidproject/update?commit=true"
+                    }
+
+                    console.log(options)
+                    request(options, function (error, response, body) {
+                        console.log(body,error)
+                        if (error) {
+                            console.log("error");
+                            console.log(error);
+                            //console.log(body)
+                        } else {
+                            console.log(body)
+                            console.log("Data written successfully!");
+                        }
+                    });
+                }
+            });
+
+    }
+    else{
+        res.send("please Enter Credentials")
+    }
+
+}
