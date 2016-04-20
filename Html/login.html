@@ -14,12 +14,49 @@ and open the template in the editor.
 
         <link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
         <link href='https://fonts.googleapis.com/css?family=Roboto:400,400italic,700,500,300,300italic,500italic,700italic|Roboto+Condensed:400,300,300italic,400italic,700' rel='stylesheet' type='text/css'>
-         <link rel="stylesheet" type="text/css" href="css/style.css"> 	
+         <link rel="stylesheet" type="text/css" href="css/style.css">
+        <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+        <script>
+
+            $( document ).ready(function() {
+                $("#login").click(function(){
+                    var Email = $("#textEmail").val();
+                    var Password=$("#pass").val();
+                    alert(Email);
+                    alert('Call Function');
+                    $.ajax({
+                        type: 'POST',
+                        url: 'http://localhost:9999/users/login',
+                        dataType: 'json',
+                        //data: $(Email,Password).serialize(),
+                        data:{email:Email,password:Password},
+                        success: function (x) {
+                            console.log("x");
+                            console.log(x);
+                            if(x.result == 'success') {
+                                $("#Err").html("Login Successful");
+                                window.location="http://localhost:63342/bigcomm/Html/credentials.html";
+                            }
+                            else {
+                                $("#Err").html("Invalid Email or Password.....")
+                            }
+                        },
+                        error: function(a, b) {
+                          console.log("in error");
+                        }
+
+                    });
+                    return false;
+                });
+            });
+
+        </script>
+
     </head>
     <body>
-    <form id="form1" name="form1" method="post" action="http://localhost:9999/users/login" class="main">
+    <form id="form1" name="form1" class="main" >
         <div class="main">
-            
+            <div id="Err"></div>
             <div class="wrapper">
             <div class="column-left">
                 <div class="logo">  <a href="#" ><img src="images/logo.png"></a></div>
@@ -33,20 +70,19 @@ and open the template in the editor.
                     </div>
                     <div class="login-group">
                         <label>Email</label>
-                        <input type="text" name="user[email]" required>
+                        <input type="text" name="user[email]" id="textEmail" required>
                     </div>
                          <div class="login-group">
                         <label>Password</label>
-                        <input type="password" name="user[password]" required>
+                        <input type="password" name="user[password]" id="pass" required>
                     </div>
                          <div class="login-group">
-                             <input type="submit" value="Log in" >
+                             <input type="submit" value="Login" id="login">
                     </div>
                     <div class="login-group">
                         <div class="center-form">
-                        <input id="remember_email" class="login-form-checkbox" type="checkbox" value="1" name="remember_email">
-                        <label class="login-form-label" for="remember_email">Remember email</label>
-                        <a class="float-right" href="https://login.bigcommerce.com/recover/new">Forgot Password?</a>
+                            <a class="float-left" href="http://localhost:63342/bigcomm/Html/Registration.html">For Registration</a>
+                        <a class="float-right" href="http://localhost:63342/bigcomm/Html/forgot_password.html">Forgot Password?</a>
                         </div>
                     </div>
                     <div class="login-group">
