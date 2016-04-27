@@ -1,17 +1,21 @@
-var express = require('express');
+var express = require('express'),
+    _ = require( 'lodash' );
 var request = require("request");
+var mongoose=require("mongoose");
 var fs = require("fs");
 var solr = require('solr-client');
 var nodemailer = require('nodemailer');
 var smtpTransport = require('nodemailer-smtp-transport');
 var app = express();
 var User = require('../model/user.model.js');
-var password1='San';
+var password1='';
 var crypto = require('crypto');
 var session = require('express-session');
-
-
-
+//var productData=require('../../../output.json');
+//var customFields = require('mongoose-custom-fields');
+var productModel=require('../model/product.model.js');
+var mongojs = require('mongojs');
+var path=require('path');
 
 exports.insert = insert;
 exports.login = login;
@@ -321,28 +325,44 @@ function logout(req,res) {
 
 function getProduct(req,res){
     console.log("Getting product")
-    var userdata=req.body.user;
-    var user=userdata.userId;
+    var userdata=req.body;
+    var user=userdata.un;
+    var apitoken=userdata.at;
+    var storehash=userdata.sh;
     console.log(user);
-    var apitoken=userdata.apiToken;
-    var storehash=userdata.storeHash;
+    console.log(apitoken);
+    console.log(storehash);
+
+
     if(user || apitoken || storehash){
         console.log(user+'in side if');
                 var user=user; //'user1',
-                password = apitoken,//'08bab894c121ebc4c3aa71213c0e095b29998ac7',
+                password =apitoken,//'08bab894c121ebc4c3aa71213c0e095b29998ac7',
                 storeHash=storehash, //'jtj7sv9',
                 url = 'https://' + user+ ':' + password + '@store-'+storeHash+'.mybigcommerce.com/api/v2/products.json';
 
             request({url: url}, function (error, response, body) {
                 if (error) {
-                    console.log("error");
-                    console.log(error);
-                    res.send('inserted credential in invalid');
-                    res.end();
-                    //console.log(body)
+                    res.json({result:'fail'});
                 } else {
-                    //console.log(sess.email);
+
+                    res.json({result:'success'})
+
                     console.log(body);
+
+                    var ex=insertProduct();
+                    fs.writeFile('output.json',body,function (err) {
+                        if (err) {
+                            console.log(err)
+                            res.send('error')
+                        }
+                        else{
+                            console.log("Data Success fully inserted....");
+                            res.end();
+                        }
+                    })
+                    //
+
                     //var data = {add:{doc: JSON.parse(body),boost:1.0,overwrite:true,commitWithin:1000}};
                     var options = {
                         method: 'post',
@@ -359,7 +379,7 @@ function getProduct(req,res){
                             console.log(error);
                             //console.log(body)
                         } else {
-                            console.log(body)
+                            //console.log(body)
                             console.log("Data written successfully!");
                         }
                     });
@@ -370,5 +390,121 @@ function getProduct(req,res){
     else{
         res.send("please Enter Credentials")
     }
+
+}
+
+function insertProduct(){
+    //var product=mongoose.model('pro_msts');
+    console.log("Functon Calling After...insert product");
+
+    data = JSON.parse(fs.readFileSync(__dirname+'/../../../output.json','utf8'));
+    console.log(data.length + ' items to store');
+    //productModel.find().remove();
+    for( var i = 0; i < data.length; i++ ) {
+        //console.log(data[i]);
+
+        var newModel=new productModel({
+            id:data[i].id,
+            keyword_filter:data[i].keyword_filter,
+            name:data[i].name,
+            type:data[i].type,
+            sku:data[i].sku,
+            description:data[i].description,
+            search_keywords:data[i].search_keywords,
+            availability_description:data[i].availability_description,
+            price:data[i].price,
+            cost_price:data[i].cost_price,
+            retail_price:data[i].retail_price,
+            sale_price:data[i].sale_price,
+            calculated_price:data[i].calculated_price,
+            sort_order:data[i].sort_order,
+            is_visible:data[i].is_visible,
+            is_featured:data[i].is_featured,
+            related_products:data[i].related_products,
+            inventory_level:data[i].inventory_level,
+            inventory_warning_level:data[i].inventory_warning_level,
+            warranty:data[i].warranty,
+            weight:data[i].weight,
+            width:data[i].width,
+            height:data[i].height,
+            depth:data[i].depth,
+            fixed_cost_shipping_price:data[i].fixed_cost_shipping_price,
+            is_free_shipping:data[i].is_free_shipping,
+            inventory_tracking:data[i].inventory_tracking,
+            rating_total:data[i].rating_total,
+            rating_count:data[i].rating_count,
+            total_sold:data[i].total_sold,
+            date_created:data[i].date_created,
+            brand_id:data[i].brand_id,
+            view_count:data[i].view_count,
+            page_title:data[i].page_title,
+            meta_keywords:data[i].meta_description,
+            meta_description:data[i].meta_description,
+            layout_file:data[i].layout_file,
+            is_price_hidden:data[i].is_price_hidden,
+            price_hidden_label:data[i].price_hidden_label,
+            categories:data[i].categories,
+            date_modified:data[i].date_modified,
+            event_date_field_name:data[i].event_date_field_name,
+            event_date_type:data[i].event_date_type,
+            event_date_start:data[i].event_date_start,
+            event_date_end:data[i].event_date_end,
+            myob_asset_account:data[i].myob_asset_account,
+            myob_income_account:data[i].myob_income_account ,
+            myob_expense_account:data[i].myob_expense_account,
+            peachtree_gl_account:data[i].peachtree_gl_account,
+            condition:data[i].condition,
+            is_condition_shown:data[i].is_condition_shown,
+            preorder_release_date:data[i].preorder_release_date,
+            is_preorder_only:data[i].is_preorder_only,
+            preorder_message:data[i].preorder_message,
+            order_quantity_minimum:data[i].order_quantity_minimum,
+            order_quantity_maximum:data[i].order_quantity_maximum,
+            open_graph_type:data[i].open_graph_type,
+            open_graph_title:data[i].open_graph_title,
+            open_graph_description:data[i].open_graph_description,
+            is_open_graph_thumbnail:data[i].is_open_graph_thumbnail,
+            upc:data[i].upc,
+            avalara_product_tax_code:data[i].avalara_product_tax_code,
+            date_last_imported:data[i].date_last_imported,
+            option_set_id:data[i].option_set_id,
+            tax_class_id:data[i].tax_class_id,
+            option_set_display:data[i].option_set_display,
+            bin_picking_number:data[i].bin_picking_number,
+            custom_url:data[i].custom_url,
+            primary_image:data[i].primary_image,
+            availability:data[i].availability,
+            brand:data[i].brand,
+            downloads:data[i].downloads,
+            images:data[i].image,
+            discount_rules:data[i].discount_rules,
+            configurable_fields:data[i].configurable_fields,
+            custom_fields:data[i].custom_fields,
+            videos:data[i].videos,
+            skus:data[i].skus,
+            rules:data[i].rules,
+            option_set:data[i].option_set,
+            options:data[i].option,
+            tax_class:data[i].tax_class,
+            reviews:data[i].reviews,
+            metadata:data[i].metadata
+        });
+        newModel.save(function(err,result){
+            if(!err){
+                console.log('successfully Inserted');
+                var a= data.length;
+                a--;
+                if(a==i){
+                    return ex;
+                }
+
+            }else{
+                console.log(err)
+            }
+        });
+
+
+    }
+    console.log("controll is here");
 
 }
