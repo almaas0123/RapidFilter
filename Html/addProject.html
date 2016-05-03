@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="viewport" content="user-scalable=1.0,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0">
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico" />
+
+    <link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,400italic,700,500,300,300italic,500italic,700italic|Roboto+Condensed:400,300,300italic,400italic,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script>
+        $(function(){
+            $("#header").load("header.html");
+        });
+//        $( document ).ready(function() {
+//            $("#getProduct").click(function(){
+//                var uname = $("#UserId").val();
+//                var atokn=$("#apiToken").val();
+//                var shash=$("#storeHash").val();
+////                alert(uname);
+//                alert('Call Function');
+//                $.ajax({
+//                    type: 'POST',
+//                    url: 'http://localhost:9999/users/getProduct',
+//                    dataType: 'json',
+//                    //data: $(Email,Password).serialize(),
+//                    data:{un:uname,at:atokn,sh:shash},
+//                    success: function (x) {
+//                        console.log("x");
+//                        console.log(x);
+//                        if(x.result == 'success') {
+//                            $("#Err").html("Successful");
+//                            window.location="http://localhost:63342/bigcomm/Html/Home.html";
+//                        }
+//                        else {
+//                            $("#Err").html("Invalid credential.....")
+//                        }
+//                    },
+//                    error: function(a, b) {
+//                        console.log("in error");
+//                    }
+//
+//                });
+//                return false;
+//            });
+//        });
+
+    </script>
+
+</head>
+<body>
+<form id="form1" name="form1" method="post" action="http://localhost:9999/users/addProject" class="main">
+    <div id="header">
+    </div>
+    <div class="main">
+        <div id="Err"></div>
+        <div class="wrapper">
+            <div class="column-left">
+                <div class="logo">  <a href="#" ><img src="images/logo.png"></a></div>
+            </div>
+            <!-- column-left end-->
+            <div class="column-right">
+                <div class="login-form">
+                    <div class="login-form-container">
+                        <div class="login-group">
+                            <a href="#" class="login-logo"><img src="images/small-logo.png"></a>
+                        </div>
+                        <div class="login-group">
+
+                            <input type="text" name="user[pName]" id="pName" placeholder="Project Name" required>
+                        </div>
+                        <div class="login-group">
+
+                            <input type="text" name="user[pro_id]" id="pro_id" placeholder="Project id" required>
+                        </div>
+                        <div class="login-group">
+
+                            <input type="text" name="user[userName]" id="UserName" placeholder="UserName" required>
+                        </div>
+                        <div class="login-group">
+
+                            <input type="password" name="user[apiToken]" id="apiToken" placeholder="Api Token" required>
+                        </div>
+                        <div class="login-group">
+
+                            <input type="password" name="user[storeHash]" id="storeHash" placeholder="Store Hash" required>
+                        </div>
+                        <div class="login-group">
+                            <input type="submit" value="Get Product" id="getProduct" >
+                        </div>
+
+
+                    </div>
+                    <!-- column-right end-->
+                </div>
+            </div>
+</form>
+</body>
+</html>
