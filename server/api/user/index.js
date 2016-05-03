@@ -14,5 +14,7 @@ routes.post('/reset',controllr.resetpass);
 routes.get('/logout',controllr.logout);
 //routes.get('/home',controllr.homepage);
 routes.post('/getProduct',controllr.getProduct);
+routes.post('/addProject',controllr.addProject);
+routes.post('/getproductbyid',controllr.getproductbyid);
 	
 module.exports=routes;
