@@ -5,8 +5,7 @@ var userSchema =  new Schema({
 	
 	Email:{type: String, unique: true},
     Password:String,
-    Mobile:String,
-    ClientId:String,
-    ClientAppSecret:String
+    Mobile:String
 });
 module.exports=mongoose.model("user_msts",userSchema);
+
