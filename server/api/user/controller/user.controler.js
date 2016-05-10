@@ -11,12 +11,10 @@ var User = require('../model/user.model.js');
 var password1='San';
 var crypto = require('crypto');
 //var session = require('express-session');
-//var productData=require('../../../output.json');
 //var customFields = require('mongoose-custom-fields');
 var productModel=require('../model/product.model.js');
 var ProjectModel=require('../model/Project.model.js');
-//var get_product=require('../model/get_product.js')
-var mongojs = require('mongojs');
+    var mongojs = require('mongojs');
 var path=require('path');
 var sessUserEmail="";
 var sessUserId="";
@@ -38,6 +36,7 @@ exports.logout=logout;
 exports.getProduct=getProduct;
 exports.getproductbyid=getproductbyid;
 exports.addProject=addProject;
+exports.getProjectName=getProjectName;
 
 function insert(req, res) {
     var postdata = req.body.user;
@@ -88,12 +87,6 @@ function insert(req, res) {
                         console.log('mail send successfully');
                     }
                 });
-
-                //app.use(function(req, res) {
-                //    console.log('mail function');
-                //
-                //});
-
             }
         }
         else {
@@ -198,9 +191,7 @@ function login(req, res) {
             if (result) {
                 res.json({result:'success'});
             }
-           //mailSending();
-           //reqToBigCom();
-            // res.json({result:true});
+
         } else {
             res.json({result:false});
             res.status(400).send(err);
@@ -291,9 +282,10 @@ function resetpass(req, res) {
 
     var postdata = req.body;
     console.log('reset password.........');
-    console.log("req.session");
-    if(sessUserId){
-    User.update({Email:sessUserId,Password: postdata.user.cpassword},{$set:{Password:postdata.user.re_password}}, function(err,value){
+    console.log("req.session"+sessUserId);
+
+    if(sessUserEmail){
+    User.update({Email:sessUserEmail,Password: postdata.user.cpassword},{$set:{Password:postdata.user.re_password}}, function(err,value){
         console.log(value);
         if(!err) {
             console.log(value);
@@ -310,7 +302,6 @@ function resetpass(req, res) {
     }
 }
 
-
 function logout(req,res) {
         req.session.destroy(function (err) {
         if (err) {
@@ -321,13 +312,6 @@ function logout(req,res) {
         }
     });
 }
-
-
-
-
-
-
-
 
 function getProduct(req,res){
     console.log("Getting product")
@@ -344,8 +328,8 @@ function getProduct(req,res){
     if(user || apitoken || storehash ){
         console.log(user+'in side if');
                 var user=user; //'user1',
-                password =apitoken,//'08bab894c121ebc4c3aa71213c0e095b29998ac7',
-                storeHash=storehash, //'jtj7sv9',
+                password =apitoken,//'1d23bbd7931d437cf212c44116b305c32c31752a',
+                storeHash=storehash, //'q0vq8i33',
                 url = 'https://' + user+ ':' + password + '@store-'+storeHash+'.mybigcommerce.com/api/v2/products.json';
 
             request({url: url}, function (error, response, body) {
@@ -353,15 +337,17 @@ function getProduct(req,res){
                     res.json({result:'fail'});
                 } else {
                     res.json({result:'success'})
-                    console.log(body);
+                    console.log(body+"control....in else");
+
                     insertProduct(body);
-                    console.log("Controll is herer")
+
+                    console.log("Control is herer..........")
                 }
             });
 
     }
     else{
-        res.send("please Enter Credentials")
+        res.send("please Enter Credentials");
     }
 
 }
@@ -369,25 +355,30 @@ function getProduct(req,res){
 
 
 function getproductbyid(req,res){
-    console.log("Function Call")
-    var postdata=req.body.id
-    console.log("Console is here"+postdata);
 
-    ProjectModel.findOne({ProjectId:postdata}, function (err, result) {
+    console.log("Function Call")
+
+    var postdataid=req.body.id;
+
+    console.log("Console is here"+postdataid);
+
+    ProjectModel.findOne({ProjectId:postdataid}, function (err, result) {
         console.log("result is " + result);
 
         if (!err) {
             res.json({result:'success'});
+
             sessProjectId=result.ProjectId
+
             if(result.UserName|| result.UserName ||result.ApiToken ){
                 console.log('in side if');
                 console.log(result.UserId);
                 var user=result.UserName; //'user1',
-                password =result.ApiToken,//'08bab894c121ebc4c3aa71213c0e095b29998ac7',
+                password =result.ApiToken,//'1d23bbd7931d437cf212c44116b305c32c31752a',
 
 
                     console.log(user+'in side if');
-                    storeHash=result.StoreHash, //'jtj7sv9',
+                    storeHash=result.StoreHash, //'q0vq8i33',
                     url = 'https://' + user+ ':' + password + '@store-'+storeHash+'.mybigcommerce.com/api/v2/products.json';
 
                 request({url: url}, function (error, response, body) {
@@ -395,21 +386,19 @@ function getproductbyid(req,res){
                         res.json({result:'fail'});
                     } else {
                         console.log(body);
+
                         insertProduct(body,sessProjectId);
-                        console.log("Controll is herer")
+
+                        console.log("Controll is here.......")
                     }
                 });
-
             }
             else{
                 res.send("please Enter Credentials")
             }
-
-
         }
         else {
             res.json({result:'fail'});
-            //}
         }
     });
 
@@ -420,6 +409,7 @@ function getproductbyid(req,res){
 
 
 function insertProduct(body){
+
     var options = {
         method: 'post',
         body: body,
@@ -433,15 +423,18 @@ function insertProduct(body){
         if (error) {
             console.log(error);
         } else {
-            console.log("Data written successfully!");
+            console.log("Data written successfully in solr!!");
         }
     });
-    //var product=mongoose.model('pro_msts');
+
     console.log("Functon Calling After...insert product UserName");
+
+    //Inserting product in mongodb from here
+
     var data = JSON.parse(body);
     console.log(data.length + ' items to store');
 
-        for( var i = 0; i < data.length; i++ ) {
+    for( var i = 0; i < data.length; i++ ) {
             //console.log(data[i]);
 
             var newModel=new productModel({
@@ -544,7 +537,7 @@ function insertProduct(body){
 
 
         }
-    //})
+    //complete inserting in mongo
 
     console.log("controll is here");
 }
@@ -573,8 +566,18 @@ function addProject(req,res) {
             return err;
         }else{
             req.session.projedtId = result._id;
-            console.log('Projectsuccessfully Inserted'+req.session.projedtId );
+            console.log('Project successfully Inserted:----'+req.session.projedtId );
             res.redirect("http://localhost:63342/bigcomm/Html/Home.html");
         }
     })
+}
+
+function getProjectName(req,res) {
+    ProjectModel.find({}, function (err, result) {
+        if (result) {
+            res.send(result);
+        } else {
+            res.json({result: 'fail'});
+        }
+    });
 }
