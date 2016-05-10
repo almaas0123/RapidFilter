@@ -35,7 +35,7 @@ and open the template in the editor.
                             console.log(x);
                             if(x.result == 'success') {
                                 $("#Err").html("Login Successful");
-                                window.location="http://localhost:63342/bigcomm/Html/credentials.html";
+                                window.location="http://localhost:63342/bigcomm/Html/Home.html";
                             }
                             else {
                                 $("#Err").html("Invalid Email or Password.....")
@@ -56,15 +56,17 @@ and open the template in the editor.
     <body>
     <form id="form1" name="form1" class="main" >
         <div class="main">
-            <div id="Err"></div>
+
             <div class="wrapper">
             <div class="column-left">
                 <div class="logo">  <a href="#" ><img src="images/logo.png"></a></div>
             </div>
             <!-- column-left end-->
             <div class="column-right">
+
                 <div class="login-form">
                 <div class="login-form-container">
+                    <div id="Err" style="{ color: red; }"></div>
                     <div class="login-group">
                         <a href="#" class="login-logo"><img src="images/small-logo.png"></a>
                     </div>
@@ -90,7 +92,7 @@ and open the template in the editor.
                     <div class="text-center login-form-register">
   Not a client?
   <a href="https://www.bigcommerce.com/free-trial">Start your free trial now.</a>
-</div></div>   
+    </div></div>
                     </div>
             </div>
             <!-- column-right end-->

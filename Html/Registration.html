@@ -16,6 +16,62 @@ and open the template in the editor.
         <link href='https://fonts.googleapis.com/css?family=Roboto:400,400italic,700,500,300,300italic,500italic,700italic|Roboto+Condensed:400,300,300italic,400italic,700' rel='stylesheet' type='text/css'>
          <link rel="stylesheet" type="text/css" href="css/style.css"> 	
     </head>
+    <script>
+        function Plz_Include(){
+//            alert("Call")
+            var Email1=Email.value
+//            alert(Email1);
+            var filter=/^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i
+            if (filter.test(Email1))
+                testresults=true
+            else{
+                alert("Please input a valid email address!")
+                testresults=false
+            }
+        }
+        function mobileNom(){
+            var fld = Mn;
+//            alert("Herer...")
+
+            if (fld.value == "") {
+                alert("You didn't enter a phone number.");
+                fld.value = "";
+                fld.focus();
+                return false;
+            }
+            else if (isNaN(fld.value)) {
+                alert("The phone number contains illegal characters.");
+                fld.value = "";
+                fld.focus();
+                return false;
+            }
+            else if (!(fld.value.length == 10)) {
+                alert("The phone number is the wrong length. \nPlease enter 10 digit mobile no.");
+                fld.value = "";
+                fld.focus();
+                return false;
+            }
+
+        }
+
+        function checkpass() {
+            document.getElementById("pass1").onchange = validatePassword;
+            document.getElementById("pass2").onchange = validatePassword;
+        }
+        function validatePassword(){
+            var pass21=document.getElementById("pass2").value;
+            var pass11=document.getElementById("pass1").value;
+            if(pass11!=pass21)
+                document.getElementById("pass2").setCustomValidity("Passwords Don't Match");
+            else
+                document.getElementById("pass2").setCustomValidity(' ');
+
+        }
+
+        $(function(){
+            $("#header").load("header.html");
+        });
+    </script>
     <body>
     <form id="form1" name="form1" method="post" action="http://localhost:9999/users/register" class="main">
         <div class="main">
@@ -34,25 +90,22 @@ and open the template in the editor.
                     </div>
                     <div class="login-group">
                         <label></label>
-                        <input type="text" name="user[Email]" placeholder="Email" required>
+                        <input type="text" name="user[Email]" placeholder="Email" id="Email" onblur="Plz_Include()" required>
 
                     <div class="login-group">
                         <label></label>
-                        <input type="password" name="user[Password]" placeholder="Password" required>
-                    </div>
-                    <div class="login-group">
-                        <label></label>
-                        <input type="text" name="user[Mobile]" placeholder="Mobile No."  required>
-                    </div>
-                    <div class="login-group">
-                        <label></label>
-                        <input type="text" name="user[ClientId]" placeholder="ClientId" required>
+                        <input type="password" name="user[Password]" placeholder="Password" id="pass1" required>
                     </div>
                         <div class="login-group">
                             <label></label>
-                            <input type="text" name="user[ClientAppSecret]" placeholder="ClientAppSecret" required>
+                            <input type="password" name="user[rePassword]" placeholder="Re-Enter Password" id="pass2" onblur="checkpass()"  required>
+                            <div id="demo"></div>
                         </div>
+                    <div class="login-group">
+                        <label></label>
+                        <input type="text" name="user[Mobile]" placeholder="Mobile No." id="Mn" onblur= "mobileNom()"  required>
                     </div>
+
                     <div class="login-group">
                         <input type="submit" value="Register">
                     </div>
