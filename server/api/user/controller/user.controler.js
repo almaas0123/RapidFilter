@@ -8,14 +8,18 @@ var nodemailer = require('nodemailer');
 var smtpTransport = require('nodemailer-smtp-transport');
 var app = express();
 var User = require('../model/user.model.js');
-var password1='San';
+var password1='';
 var crypto = require('crypto');
 //var session = require('express-session');
 //var customFields = require('mongoose-custom-fields');
 var productModel=require('../model/product.model.js');
 var ProjectModel=require('../model/Project.model.js');
-    var mongojs = require('mongojs');
+var mongojs = require('mongojs');
 var path=require('path');
+var solrClient = require('solr-client');
+var SolrNode = require('solr-node');
+var facet=require("facet");
+var client = solr.createClient();
 var sessUserEmail="";
 var sessUserId="";
 var sessProjectId="";
@@ -37,6 +41,7 @@ exports.getProduct=getProduct;
 exports.getproductbyid=getproductbyid;
 exports.addProject=addProject;
 exports.getProjectName=getProjectName;
+exports.getFacet=getFacet;
 
 function insert(req, res) {
     var postdata = req.body.user;
@@ -70,7 +75,7 @@ function insert(req, res) {
 
                     subject: "verifiaction mail",
 
-                    text: "very ficatio code is 123455",
+                    text: "very fication code",
                     html: "<b> Wel Come in RapidFilter....You are Successfullly login</b>",
 
                 }
@@ -142,8 +147,8 @@ function mailSendingforReset(value) {
         from: "sandip.lakum5@gmail.com",
         to: req.body.user.email,
         subject: "verifiaction mail",
-        text: "very ficatio code is 123455",
-        html: "<p>This is Your currunt password:</p>"+ value +"<br><p>Reset Your Password...from this Currunt password </p>",
+        text: "very fication code is 123455",
+        html: "<p>This is Your currunt password:</p>"+ value +"<br><p>Reset Your Password...from this Currunt password </p>"
     }
     console.log(mailOptions);
     transporter.sendMail(mailOptions, function (error, response) {
@@ -290,7 +295,7 @@ function resetpass(req, res) {
         if(!err) {
             console.log(value);
             console.log("Password Are Reseted");
-            res.redirect('http://localhost:63342/bigcomm/Html/Home.html')
+            res.redirect('http://localhost:63342/bigcomm/Html/Home.html');
         }
         else {
            return err
@@ -303,7 +308,7 @@ function resetpass(req, res) {
 }
 
 function logout(req,res) {
-        req.session.destroy(function (err) {
+        req.session.destroy(function (err){
         if (err) {
             console.log(err);
         } else {
@@ -374,11 +379,11 @@ function getproductbyid(req,res){
                 console.log('in side if');
                 console.log(result.UserId);
                 var user=result.UserName; //'user1',
-                password =result.ApiToken,//'1d23bbd7931d437cf212c44116b305c32c31752a',
+                password =result.ApiToken,//'57ff3c032af5841147bdc3ca0edcbdba55ae710b',{57ff3c032af5841147bdc3ca0edcbdba55ae710b}
 
 
                     console.log(user+'in side if');
-                    storeHash=result.StoreHash, //'q0vq8i33',
+                    storeHash=result.StoreHash, //'jdb5o1',
                     url = 'https://' + user+ ':' + password + '@store-'+storeHash+'.mybigcommerce.com/api/v2/products.json';
 
                 request({url: url}, function (error, response, body) {
@@ -407,22 +412,24 @@ function getproductbyid(req,res){
 
 
 
-
-function insertProduct(body){
-
-    var options = {
+function insertProduct(body,sesProjectId){
+    var request = require('request');
+    console.log("Insetr......................"+body);
+    var body1=JSON.stringify(body);
+    var options1 = {
         method: 'post',
-        body: body,
+        body: body1,
         json: true,
-        url: "http://localhost:8983/solr/myRapidproject/update?commit=true"
+        url: "http://localhost:8983/solr/demo/update?commit=true"
     }
 
-    console.log(options)
-    request(options, function (error, response, body) {
-        console.log(body,error)
+    console.log("options.........."+JSON.stringify(options1));
+    request.post(options1, function (error, response, body1) {
+        //console.log("Inside The request body....."+ options1);
         if (error) {
             console.log(error);
         } else {
+            console.log("inside the else statement..................." + body1);
             console.log("Data written successfully in solr!!");
         }
     });
@@ -580,4 +587,106 @@ function getProjectName(req,res) {
             res.json({result: 'fail'});
         }
     });
+}
+
+function getFacet(req,res){
+    var search=req.body.abc;
+    console.log("fcat searching..............."+ search);
+
+
+// Create client
+//    var client = new SolrNode({
+//        host: 'localhost',
+//        port: '8983',
+//        core: 'demo',
+//        protocol: 'http'
+//    });
+
+    //var client=demo.solr;
+    var client = solr.createClient({'core':'demo'});
+    var strQuery = client.createQuery().q(search)
+        .rows(200)
+        .facet(true)
+        .facet({'field':'cat'})
+        .facet({'field':'type'})
+        .facet({'field':'brand'})
+        .facet({'field':'condition'})
+
+    //var defer = demo.Q.defer();
+// Search documents using myStrQuery
+    console.log(strQuery);
+
+    client.search(strQuery, function (err, result) {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        var fcets = result.facet_counts.facet_fields.cat;
+        var fcetsBrand = result.facet_counts.facet_fields.brand;
+        var fcetsType = result.facet_counts.facet_fields.type;
+        var fcetsCondition=result.facet_counts.facet_fields.condition;
+
+
+        console.log("cat"+fcets);
+        console.log("Brand"+fcetsBrand)
+        console.log("Type"+fcetsType)
+        console.log("Condition"+ fcetsCondition);
+
+        var facetCats1 = [];
+        var facetBrand1=[];
+        var facetType1=[];
+        var facetCond1=[];
+
+        for(var f in fcets){
+            if(f%2==0){
+                if(fcets[f-1]!=undefined ||fcets[f-1]!= null ){
+                    var object = {}
+                    console.log("Here......"+fcets[f]+":"+fcets[f-1]);
+                    object[fcets[f]]=fcets[f-1];
+                    console.log(object);
+                    facetCats1.push(object);
+                }
+            }
+        }
+        for(var f1 in fcetsBrand) {
+            if (f1 % 2 == 0) {
+                if (fcetsBrand[f1 - 1] != undefined || fcetsBrand[f1 - 1] != null) {
+                    var object1 = {}
+                    console.log("Here......"+fcetsBrand[f1]+":"+fcetsBrand[f1-1]);
+                    object1[fcetsBrand[f1]] = fcetsBrand[f1 - 1];
+                    console.log(object1);
+                    facetBrand1.push(object1);
+                }
+            }
+        }
+
+        for(var f2 in fcetsType){
+            if(f2%2==0){
+                if(fcetsType[f2-1]!=undefined ||fcetsType[f2-1]!=null ){
+                    var object2 = {}
+                    object2[fcetsType[f2]]=fcetsType[f2-1];
+                    console.log(object2);
+                    facetType1.push(object2);
+                }
+            }
+        }
+            for(var f3 in fcetsCondition){
+                if(f3%2==0){
+                    if(fcetsCondition[f3-1]!=undefined ||fcetsCondition[f3-1]!=null ){
+                        var object3 = {}
+                        console.log(fcetsCondition[f3]+":"+fcetsCondition[f3-1]);
+                        object3[fcetsCondition[f3]]=fcetsCondition[f3-1];
+
+                        console.log(object3);
+                        facetCond1.push(object3);
+                    }
+                }
+            }
+
+        //var facetdata=[];facetCats+facetBrand1+facetType1+facetCond1;
+        res.json(facetCats1);
+
+        //console.log('Response:', JSON.stringify(result.response));
+    });
+
 }
