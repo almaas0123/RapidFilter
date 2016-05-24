@@ -16,5 +16,7 @@ routes.get('/logout',controllr.logout);
 routes.post('/getProduct',controllr.getProduct);
 routes.post('/addProject',controllr.addProject);
 routes.post('/getproductbyid',controllr.getproductbyid);
+routes.get('/getprojectName',controllr.getProjectName);
+routes.post('/facet',controllr.getFacet);
 	
 module.exports=routes;
